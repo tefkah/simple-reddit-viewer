@@ -181,7 +181,7 @@ export interface CommentListingData {
   dist: null;
   modhash: string;
   geo_filter: string;
-  children: ChildComment[];
+  children: (ChildComment | More)[];
   before: null;
 }
 
@@ -215,6 +215,7 @@ export interface CommentData {
   id: string;
   banned_at_utc: null;
   mod_reason_title: null;
+  profile_img: string;
   gilded: number;
   archived: boolean;
   collapsed_reason_code: null;
@@ -273,4 +274,18 @@ export interface Gildings {}
 export interface CommentListing {
   kind: 'Listing';
   data: CommentListingData;
+}
+
+export interface More {
+  kind: 'list';
+  data: MoreData;
+}
+
+export interface MoreData {
+  count: number;
+  name: string;
+  id: string;
+  parent_id: string;
+  depth: number;
+  children: string[];
 }

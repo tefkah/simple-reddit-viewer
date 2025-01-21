@@ -1,20 +1,36 @@
 'use client';
 
-import type { CommentListing, ChildComment } from 'types';
+import type { CommentListing, ChildComment, More, Replies } from 'types';
 import { decodeHtml } from '../../util';
 import { useState } from 'react';
 
-export function CommentListing({ data }: { data: CommentListing }) {
+export function CommentListing({
+  data,
+  baseRedditUrl,
+}: {
+  data: CommentListing;
+  baseRedditUrl: string;
+}) {
   return (
     <div className="max-w-3xl mx-auto mt-4">
       {data.data.children.map((comment) => (
-        <Comment key={comment.data.id} comment={comment} />
+        <Comment
+          key={comment.data.id}
+          comment={comment}
+          baseRedditUrl={baseRedditUrl}
+        />
       ))}
     </div>
   );
 }
 
-export function Comment({ comment }: { comment: ChildComment }) {
+export function Comment({
+  comment,
+  baseRedditUrl,
+}: {
+  comment: ChildComment;
+  baseRedditUrl: string;
+}) {
   const { data } = comment;
   const [isExpanded, setIsExpanded] = useState(!comment.data.collapsed);
 
@@ -54,9 +70,6 @@ export function Comment({ comment }: { comment: ChildComment }) {
       <div className="inline-flex gap-2 ml-2">{awards}</div>
     ) : null;
   };
-  if (data.author === 'Nice_Palpitation_133') {
-    console.log(data);
-  }
 
   return (
     <div
@@ -83,12 +96,21 @@ export function Comment({ comment }: { comment: ChildComment }) {
 
           {/* Author section */}
           <div className="flex items-center gap-2">
+            {data.profile_img && (
+              <img
+                src={data.profile_img}
+                alt={data.author}
+                className="w-4 h-4 rounded-full"
+                loading="lazy"
+              />
+            )}
             <span
               className={`font-medium ${
                 data.is_submitter ? 'text-blue-500 dark:text-blue-400' : ''
               }`}
             >
               {data.author}
+              {data.is_submitter && <span className="text-xs"> (OP)</span>}
             </span>
             {data.author_flair_text && (
               <span className="px-1 bg-gray-100 dark:bg-gray-800 rounded text-xs">
@@ -131,7 +153,7 @@ export function Comment({ comment }: { comment: ChildComment }) {
                 <div
                   className="mt-2 prose dark:prose-invert max-w-none text-sm
               prose-p:my-2 prose-code:px-1 prose-code:bg-gray-100 prose-code:dark:bg-gray-800 
-              prose-code:rounded prose-code:before:content-none prose-code:after:content-none"
+              prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-a:text-blue-500 prose-a:dark:text-blue-400"
                   dangerouslySetInnerHTML={{
                     __html: decodeHtml(data.body_html),
                   }}
@@ -158,9 +180,21 @@ export function Comment({ comment }: { comment: ChildComment }) {
             {/* Nested replies */}
             {data.replies && typeof data.replies !== 'string' && (
               <div className={`mt-2 ${isExpanded ? 'block' : 'hidden'}`}>
-                {data.replies.data.children.map((reply) => (
-                  <Comment key={reply.data.id} comment={reply} />
-                ))}
+                {data.replies.data.children.map((reply) =>
+                  reply.kind === 't1' ? (
+                    <Comment
+                      key={reply.data.id}
+                      comment={reply}
+                      baseRedditUrl={baseRedditUrl}
+                    />
+                  ) : (
+                    <MoreComments
+                      key={reply.data.id}
+                      comment={reply}
+                      baseRedditUrl={baseRedditUrl}
+                    />
+                  )
+                )}
               </div>
             )}
           </>
@@ -170,6 +204,95 @@ export function Comment({ comment }: { comment: ChildComment }) {
   );
 }
 
+function MoreComments({
+  comment,
+  baseRedditUrl,
+}: {
+  comment: More;
+  baseRedditUrl: string;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [additionalComments, setAdditionalComments] = useState<Replies | null>(
+    null
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  const loadMoreComments = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Fetch additional comments using the children IDs
+      const response = await fetch(
+        `${baseRedditUrl}${comment.data.parent_id?.replace(
+          't1_',
+          ''
+        )}/.json?raw_json=1&profile_img=true`
+      );
+      if (!response.ok) throw new Error('Failed to load comments');
+      const data = await response.json();
+
+      const commentListing = data[1] as CommentListing;
+
+      const additionalComments = commentListing.data.children[0];
+      // The response should contain an array of new comments
+      if (additionalComments.kind === 't1') {
+        const additionalReplies = additionalComments.data.replies as Replies;
+        setAdditionalComments(additionalReplies);
+      } else {
+        setAdditionalComments(additionalComments.data.children);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load comments');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="text-red-500 text-sm ml-4 mt-2">
+        Error loading comments: {error}
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2">
+      {additionalComments ? (
+        additionalComments.data.children
+          .filter((reply) => comment.data.children.includes(reply.data.id))
+          .map((comment) => {
+            if (comment.kind === 't1') {
+              return (
+                <Comment
+                  key={comment.data.id}
+                  comment={comment}
+                  baseRedditUrl={baseRedditUrl}
+                />
+              );
+            }
+            return (
+              <MoreComments
+                key={comment.data.id}
+                comment={comment}
+                baseRedditUrl={baseRedditUrl}
+              />
+            );
+          })
+      ) : (
+        <button
+          onClick={loadMoreComments}
+          disabled={loading}
+          className="text-blue-500 dark:text-blue-400 text-sm hover:underline disabled:opacity-50"
+        >
+          {loading
+            ? 'Loading...'
+            : `Load ${comment.data.children.length} more comments`}
+        </button>
+      )}
+    </div>
+  );
+}
 // function Comment({ comment }: { comment: ChildComment }) {
 //   const { data } = comment;
 //   const [isExpanded, setIsExpanded] = useState(!comment.data.collapsed);

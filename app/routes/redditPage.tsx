@@ -1,20 +1,22 @@
-import { useState, useEffect } from 'react';
 import type { PostListing, CommentListing } from 'types';
 import { PostListing as PostListingComponent } from '../components/PostListing';
 import { CommentListing as CommentSection } from '../components/CommentSection';
-import { useParams } from 'react-router';
-import { PostSkeleton } from '~/components/Skeleton';
-import { CommentSkeleton } from '~/components/Skeleton';
 import type { Route } from './+types/redditPage';
 
 export const meta: Route.MetaFunction = (args) => {
-  return [{ title: args.data }];
+  return [{ title: args.data.postListing.data.children[0].data.title }];
 };
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
-  const reddit = await fetch(`https://www.reddit.com/r/${params['*']}.json`);
+  const reddit = await fetch(
+    `https://www.reddit.com/r/${params['*']}.json?raw_json=1&profile_img=true`
+  );
   const result = await reddit.json();
-  return result;
+  return {
+    postListing: result[0] as PostListing,
+    commentListing: result[1] as CommentListing,
+    baseRedditUrl: `https://www.reddit.com/r/${params['*']}`,
+  };
 }
 
 // export function HydrateFallback() {
@@ -35,12 +37,12 @@ export default function RedditPage({ loaderData }: Route.ComponentProps) {
     return <div>Error loading post</div>;
   }
 
-  const [postListing, commentListing] = loaderData;
+  const { postListing, commentListing, baseRedditUrl } = loaderData;
 
   return (
     <div>
       <PostListingComponent data={postListing} />
-      <CommentSection data={commentListing} />
+      <CommentSection data={commentListing} baseRedditUrl={baseRedditUrl} />
     </div>
   );
 }

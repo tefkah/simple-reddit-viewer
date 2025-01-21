@@ -1,5 +1,5 @@
 {
   "redirects": [
-    { "source": "/(.*)", "destination": "/index.html", "permanent": true }
+    { "source": "/r/(.*)", "destination": "/index.html", "permanent": true }
   ]
 }

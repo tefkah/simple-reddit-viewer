@@ -1,5 +1,3 @@
 {
-  "redirects": [
-    { "source": "/r/(.*)", "destination": "/index.html", "permanent": true }
-  ]
+  "routes": [{ "source": "/(.*)", "destination": "/", "status": 200 }]
 }

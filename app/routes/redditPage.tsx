@@ -4,7 +4,13 @@ import { CommentListing as CommentSection } from '../components/CommentSection';
 import type { Route } from './+types/redditPage';
 
 export const meta: Route.MetaFunction = (args) => {
-  return [{ title: args.data.postListing.data.children[0].data.title }];
+  const data = args?.data?.postListing?.data?.children[0]?.data;
+
+  if (!data) {
+    return [{ title: 'Reddit' }];
+  }
+
+  return [{ title: data.title }];
 };
 
 export async function clientLoader({ params }: Route.ClientLoaderArgs) {
@@ -38,6 +44,11 @@ export default function RedditPage({ loaderData }: Route.ComponentProps) {
   }
 
   const { postListing, commentListing, baseRedditUrl } = loaderData;
+  console.log(loaderData);
+
+  if (!postListing || !commentListing) {
+    return <div>Post not found</div>;
+  }
 
   return (
     <div>

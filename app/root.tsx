@@ -9,6 +9,7 @@ import {
 
 import type { Route } from './+types/root';
 import stylesheet from './app.css?url';
+import { Loader2 } from 'lucide-react';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -25,7 +26,12 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function HydrateFallback() {
-  return <div>Loading...</div>;
+  return (
+    <div className="w-screen h-screen flex items-center justify-center">
+      <Loader2 className="animate-spin" />
+      <Scripts />
+    </div>
+  );
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -65,6 +71,8 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
     details = error.message;
     stack = error.stack;
   }
+
+  console.log(error);
 
   return (
     <main className="pt-16 p-4 container mx-auto">

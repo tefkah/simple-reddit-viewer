@@ -1,4 +1,5 @@
-import { Loader2 } from "lucide-react";
+import { Loader2, Moon, Sun } from "lucide-react";
+import { useEffect, useState } from "react";
 import {
 	isRouteErrorResponse,
 	Links,
@@ -9,6 +10,42 @@ import {
 } from "react-router";
 import type { Route } from "./+types/root";
 import stylesheet from "./app.css?url";
+
+function ThemeToggle() {
+	const [dark, setDark] = useState(false);
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		const stored = localStorage.getItem("theme");
+		const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+		const shouldBeDark = stored === "dark" || (!stored && prefersDark);
+		setDark(shouldBeDark);
+		document.documentElement.classList.toggle("dark", shouldBeDark);
+		setMounted(true);
+	}, []);
+
+	const toggle = () => {
+		const next = !dark;
+		setDark(next);
+		document.documentElement.classList.toggle("dark", next);
+		localStorage.setItem("theme", next ? "dark" : "light");
+	};
+
+	if (!mounted) return <div className="size-6" />;
+
+	return (
+		<button
+			type="button"
+			onClick={toggle}
+			className="p-1 border border-border hover:bg-muted transition-colors"
+			aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+		>
+			{dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
+		</button>
+	);
+}
+
+export { ThemeToggle };
 
 export const links: Route.LinksFunction = () => [
 	{ rel: "stylesheet", href: stylesheet },

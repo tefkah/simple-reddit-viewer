@@ -13,7 +13,7 @@ export function CommentListing({
 	baseRedditUrl: string;
 }) {
 	return (
-		<div className="border-x flex flex-col gap-4 p-4">
+		<div className="border border-t-0 border-border bg-card flex flex-col gap-3 p-3">
 			{data.data.children.map((comment) => (
 				<Comment
 					key={comment.data.id}
@@ -73,127 +73,70 @@ export function Comment({
 	};
 
 	return (
-		<div
-			className={`
-      ${data.is_submitter ? "highlight-op" : ""} flex gap-2`}
-		>
-			<div className="flex items-center gap-3 flex-col">
+		<div className={cn("flex gap-2", data.is_submitter && "highlight-op")}>
+			<div className="flex items-center gap-2 flex-col">
 				{data.profile_img ? (
 					<img
 						src={data.profile_img}
 						alt={data.author}
-						className="size-5 rounded-full ring-1 ring-foreground"
+						className="size-4 ring-1 ring-border"
 						loading="lazy"
 					/>
 				) : (
-					<div className="size-5 rounded-full bg-muted-foreground" />
+					<div className="size-4 bg-muted-foreground" />
 				)}
 				<button
 					className={cn(
-						" w-px min-w-px h-full block after:content-[''] after:absolute after:top-0 after:-left-2 after:-right-2 after:w-4 after:bottom-0 after:block",
-						isExpanded && "bg-muted-foreground/50",
+						"w-px min-w-px h-full block relative",
+						isExpanded && "bg-border",
 					)}
-					onClick={() => {
-						setIsExpanded(!isExpanded);
-					}}
+					onClick={() => setIsExpanded(!isExpanded)}
 					type="button"
 				>
-					{isExpanded ? null : "+"}
+					{isExpanded ? null : <span className="absolute -left-1 top-0 text-xs text-muted-foreground">+</span>}
 				</button>
 			</div>
-			<div className="w-full">
-				<div className="text-sm  text-muted-foreground flex items-center gap-2 flex-wrap w-full">
-					{/* Author section */}
-					<div className="flex items-center gap-2">
-						<span
-							className={`font-medium ${
-								data.is_submitter
-									? "text-blue-500 dark:text-blue-400"
-									: "text-foreground"
-							}`}
-						>
-							{data.author}
-							{data.is_submitter && <span className="text-xs"> (OP)</span>}
-						</span>
-						{data.author_flair_text && (
-							<span className="px-1 bg-muted rounded text-xs">
-								{data.author_flair_text}
+			<div className="w-full min-w-0">
+				<div className="text-xs text-muted-foreground flex items-center gap-1 flex-wrap">
+					<span className={cn("font-medium", data.is_submitter ? "text-blue-500 dark:text-blue-400" : "text-foreground")}>
+						{data.author}
+						{data.is_submitter && " (OP)"}
+					</span>
+					{data.author_flair_text && (
+						<span className="px-1 bg-muted text-xs">{data.author_flair_text}</span>
+					)}
+					<span>/</span>
+					<span>{data.score}pts</span>
+					<span>/</span>
+					<span title={new Date(data.created_utc * 1000).toLocaleString()}>
+						{formatTimestamp(data.created_utc)}
+					</span>
+					{data.edited && (
+						<>
+							<span>/</span>
+							<span className="italic" title={new Date(data.edited * 1000).toLocaleString()}>
+								edited
 							</span>
-						)}
-					</div>
-
-					{/* Score and metadata */}
-					<div className="flex items-center gap-2">
-						<span>{data.score} points</span>
-						<span>•</span>
-						<span title={new Date(data.created_utc * 1000).toLocaleString()}>
-							{formatTimestamp(data.created_utc)}
-						</span>
-						{data.edited && (
-							<>
-								<span>•</span>
-								<span
-									className="italic"
-									title={new Date(data.edited * 1000).toLocaleString()}
-								>
-									edited {formatTimestamp(data.edited)}
-								</span>
-							</>
-						)}
-						{renderGildings()}
-					</div>
+						</>
+					)}
+					{renderGildings()}
 				</div>
-
-				{data.body_html && (
-					<>
-						{isExpanded ? (
-							<div
-								className="prose mt-3 dark:prose-invert max-w-none text-sm
-              prose-p:my-2 prose-code:px-1 prose-code:bg-muted prose-code:dark:bg-muted 
-              prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-a:text-blue-500 prose-a:dark:text-blue-400"
-								dangerouslySetInnerHTML={{
-									__html: decodeHtml(data.body_html),
-								}}
-							/>
-						) : null}
-
-						{/* Comment actions */}
-						{/* <div className="mt-2 flex gap-4 text-xs text-gray-500 dark:text-gray-400">
-              <button className="hover:text-gray-700 dark:hover:text-gray-300">
-                Reply
-              </button>
-              <button className="hover:text-gray-700 dark:hover:text-gray-300">
-                Share
-              </button>
-              <button className="hover:text-gray-700 dark:hover:text-gray-300">
-                Report
-              </button>
-              <button className="hover:text-gray-700 dark:hover:text-gray-300">
-                Save
-              </button>
-            </div> */}
-
-						{/* Nested replies */}
-						{data.replies && typeof data.replies !== "string" && (
-							<div className={`mt-2 ${isExpanded ? "block" : "hidden"}`}>
-								{data.replies.data.children.map((reply) =>
-									reply.kind === "t1" ? (
-										<Comment
-											key={reply.data.id}
-											comment={reply}
-											baseRedditUrl={baseRedditUrl}
-										/>
-									) : (
-										<MoreComments
-											key={reply.data.id}
-											comment={reply}
-											baseRedditUrl={baseRedditUrl}
-										/>
-									),
-								)}
-							</div>
+				{data.body_html && isExpanded && (
+					<div
+						className="prose dark:prose-invert max-w-none text-xs mt-1 prose-p:my-1 prose-code:px-1 prose-code:bg-muted prose-code:before:content-none prose-code:after:content-none prose-a:text-blue-500 dark:prose-a:text-blue-400"
+						dangerouslySetInnerHTML={{ __html: decodeHtml(data.body_html) }}
+					/>
+				)}
+				{data.replies && typeof data.replies !== "string" && isExpanded && (
+					<div className="mt-2 flex flex-col gap-2">
+						{data.replies.data.children.map((reply) =>
+							reply.kind === "t1" ? (
+								<Comment key={reply.data.id} comment={reply} baseRedditUrl={baseRedditUrl} />
+							) : (
+								<MoreComments key={reply.data.id} comment={reply} baseRedditUrl={baseRedditUrl} />
+							),
 						)}
-					</>
+					</div>
 				)}
 			</div>
 		</div>
@@ -246,45 +189,32 @@ function MoreComments({
 
 	if (error) {
 		return (
-			<div className="text-red-500 text-sm ml-4 mt-2">
-				Error loading comments: {error}
+			<div className="text-red-500 text-xs mt-1">
+				error: {error}
 			</div>
 		);
 	}
 
 	return (
-		<div className="mt-2">
+		<div className="mt-1 flex flex-col gap-2">
 			{additionalComments ? (
 				additionalComments.data.children
 					.filter((reply) => comment.data.children.includes(reply.data.id))
-					.map((comment) => {
-						if (comment.kind === "t1") {
-							return (
-								<Comment
-									key={comment.data.id}
-									comment={comment}
-									baseRedditUrl={baseRedditUrl}
-								/>
-							);
-						}
-						return (
-							<MoreComments
-								key={comment.data.id}
-								comment={comment}
-								baseRedditUrl={baseRedditUrl}
-							/>
-						);
-					})
+					.map((c) =>
+						c.kind === "t1" ? (
+							<Comment key={c.data.id} comment={c} baseRedditUrl={baseRedditUrl} />
+						) : (
+							<MoreComments key={c.data.id} comment={c} baseRedditUrl={baseRedditUrl} />
+						),
+					)
 			) : (
 				<button
 					type="button"
 					onClick={loadMoreComments}
 					disabled={loading}
-					className="text-blue-500 dark:text-blue-400 text-sm hover:underline disabled:opacity-50"
+					className="text-blue-500 dark:text-blue-400 text-xs hover:underline disabled:opacity-50"
 				>
-					{loading
-						? "Loading..."
-						: `Load ${comment.data.children.length} more comments`}
+					{loading ? "loading..." : `+ ${comment.data.children.length} more`}
 				</button>
 			)}
 		</div>

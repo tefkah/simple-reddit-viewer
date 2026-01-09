@@ -20,22 +20,51 @@ export async function loader({ params }: Route.LoaderArgs) {
 			`https://www.reddit.com/r/${params["*"]}.json?raw_json=1&profile_img=true`,
 		);
 
-		const result = await reddit.json();
+		if (!reddit.ok) {
+			try {
+				const error = await reddit.json();
+				return {
+					error: "Reddit API returned an error",
+					errorMessage:
+						error instanceof Error ? error.message : "Unknown error",
+				};
+			} catch (error) {
+				console.error(error);
+				return {
+					error: "Failed to load post, error parsing error message",
+					errorMessage:
+						error instanceof Error
+							? `${error.message} ${error.stack}.`
+							: "Unknown error",
+				};
+			}
+		}
 
-		const media = result[0].data.children[0].data;
-		console.dir(media.media_metadata, { depth: null });
+		try {
+			const result = await reddit.json();
 
-		// console.log(media);
+			const media = result[0].data.children[0].data;
+			console.dir(media.media_metadata, { depth: null });
 
-		return {
-			postListing: result[0] as PostListing,
-			commentListing: result[1] as CommentListing,
-			baseRedditUrl: `https://www.reddit.com/r/${params["*"]}`,
-		};
+			// console.log(media);
+
+			return {
+				postListing: result[0] as PostListing,
+				commentListing: result[1] as CommentListing,
+				baseRedditUrl: `https://www.reddit.com/r/${params["*"]}`,
+			};
+		} catch (error) {
+			console.error(error);
+			return {
+				error: "Failed to load post, error parsing response",
+				errorMessage: error instanceof Error ? error.message : "Unknown error",
+			};
+		}
 	} catch (error) {
+		console.error(error);
 		return {
 			error: "Failed to load post",
-			errorMessage: error,
+			errorMessage: error instanceof Error ? error.message : "Unknown error",
 		};
 	}
 }

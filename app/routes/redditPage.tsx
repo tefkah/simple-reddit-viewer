@@ -20,6 +20,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 		console.log(`Fetching post from ${postUrl}`);
 		const reddit = await fetch(postUrl);
+		console.log(`Response Headers: ${JSON.stringify(reddit.headers)}`);
 
 		if (!reddit.ok) {
 			try {

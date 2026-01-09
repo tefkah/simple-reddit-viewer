@@ -15,22 +15,29 @@ export const meta: Route.MetaFunction = (args) => {
 };
 
 export async function loader({ params }: Route.LoaderArgs) {
-	const reddit = await fetch(
-		`https://api.reddit.com/r/${params["*"]}.json?raw_json=1&profile_img=true`,
-	);
+	try {
+		const reddit = await fetch(
+			`https://www.reddit.com/r/${params["*"]}.json?raw_json=1&profile_img=true`,
+		);
 
-	const result = await reddit.json();
+		const result = await reddit.json();
 
-	const media = result[0].data.children[0].data;
-	console.dir(media.media_metadata, { depth: null });
+		const media = result[0].data.children[0].data;
+		console.dir(media.media_metadata, { depth: null });
 
-	// console.log(media);
+		// console.log(media);
 
-	return {
-		postListing: result[0] as PostListing,
-		commentListing: result[1] as CommentListing,
-		baseRedditUrl: `https://www.reddit.com/r/${params["*"]}`,
-	};
+		return {
+			postListing: result[0] as PostListing,
+			commentListing: result[1] as CommentListing,
+			baseRedditUrl: `https://www.reddit.com/r/${params["*"]}`,
+		};
+	} catch (error) {
+		return {
+			error: "Failed to load post",
+			errorMessage: error,
+		};
+	}
 }
 
 // export function HydrateFallback() {
@@ -50,9 +57,11 @@ export default function RedditPage({ loaderData }: Route.ComponentProps) {
 	if (!loaderData) {
 		return <div>Error loading post</div>;
 	}
+	if (loaderData.error) {
+		return <div>Error loading post: {loaderData.errorMessage}</div>;
+	}
 
 	const { postListing, commentListing, baseRedditUrl } = loaderData;
-	console.log(loaderData);
 
 	if (!postListing || !commentListing) {
 		return <div>Post not found</div>;

@@ -16,9 +16,10 @@ export const meta: Route.MetaFunction = (args) => {
 
 export async function loader({ params }: Route.LoaderArgs) {
 	try {
-		const reddit = await fetch(
-			`https://www.reddit.com/r/${params["*"]}.json?raw_json=1&profile_img=true`,
-		);
+		const postUrl = `https://www.reddit.com/r/${params["*"]}.json?raw_json=1&profile_img=true`;
+
+		console.log(`Fetching post from ${postUrl}`);
+		const reddit = await fetch(postUrl);
 
 		if (!reddit.ok) {
 			try {
@@ -54,6 +55,19 @@ export async function loader({ params }: Route.LoaderArgs) {
 				baseRedditUrl: `https://www.reddit.com/r/${params["*"]}`,
 			};
 		} catch (error) {
+			if (
+				error instanceof Error &&
+				error.message.includes("Unexpected token '<'")
+			) {
+				/// get html
+				const html = await reddit.text();
+				console.log(html);
+				return {
+					error: "Failed to load post, error parsing response",
+					errorMessage: error.message,
+					html: html,
+				};
+			}
 			console.error(error);
 			return {
 				error: "Failed to load post, error parsing response",
@@ -87,7 +101,14 @@ export default function RedditPage({ loaderData }: Route.ComponentProps) {
 		return <div>Error loading post</div>;
 	}
 	if (loaderData.error) {
-		return <div>Error loading post: {loaderData.errorMessage}</div>;
+		return (
+			<div>
+				<div>Error loading post: {loaderData.errorMessage}</div>
+				{loaderData.html && (
+					<div dangerouslySetInnerHTML={{ __html: loaderData.html }} />
+				)}
+			</div>
+		);
 	}
 
 	const { postListing, commentListing, baseRedditUrl } = loaderData;

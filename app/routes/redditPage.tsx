@@ -58,7 +58,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 		} catch (error) {
 			if (
 				error instanceof Error &&
-				error.message.includes("Unexpected token '<'")
+				error.message.includes("Unexpected token")
 			) {
 				/// get html
 				const html = await reddit.text();
@@ -104,7 +104,11 @@ export default function RedditPage({ loaderData }: Route.ComponentProps) {
 	if (loaderData.error) {
 		return (
 			<div>
-				<div>Error loading post: {loaderData.errorMessage}</div>
+				<h1>{loaderData.error}</h1>
+				<div>
+					Error loading post:
+					<pre>{JSON.stringify(loaderData.errorMessage, null, 2)}</pre>
+				</div>
 				{loaderData.html && (
 					<div dangerouslySetInnerHTML={{ __html: loaderData.html }} />
 				)}

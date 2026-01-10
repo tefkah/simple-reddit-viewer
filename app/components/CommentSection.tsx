@@ -93,17 +93,28 @@ export function Comment({
 					onClick={() => setIsExpanded(!isExpanded)}
 					type="button"
 				>
-					{isExpanded ? null : <span className="absolute -left-1 top-0 text-xs text-muted-foreground">+</span>}
+					{isExpanded ? null : (
+						<span className="absolute -left-1 top-0 text-xs text-muted-foreground">
+							+
+						</span>
+					)}
 				</button>
 			</div>
 			<div className="w-full min-w-0">
-				<div className="text-xs text-muted-foreground flex items-center gap-1 flex-wrap">
-					<span className={cn("font-medium", data.is_submitter ? "text-blue-500 dark:text-blue-400" : "text-foreground")}>
+				<div className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
+					<span
+						className={cn(
+							"font-medium",
+							data.is_submitter
+								? "text-blue-500 dark:text-blue-400"
+								: "text-foreground",
+						)}
+					>
 						{data.author}
 						{data.is_submitter && " (OP)"}
 					</span>
 					{data.author_flair_text && (
-						<span className="px-1 bg-muted text-xs">{data.author_flair_text}</span>
+						<span className="px-1 bg-muted ">{data.author_flair_text}</span>
 					)}
 					<span>/</span>
 					<span>{data.score}pts</span>
@@ -114,7 +125,10 @@ export function Comment({
 					{data.edited && (
 						<>
 							<span>/</span>
-							<span className="italic" title={new Date(data.edited * 1000).toLocaleString()}>
+							<span
+								className="italic"
+								title={new Date(data.edited * 1000).toLocaleString()}
+							>
 								edited
 							</span>
 						</>
@@ -123,7 +137,7 @@ export function Comment({
 				</div>
 				{data.body_html && isExpanded && (
 					<div
-						className="prose dark:prose-invert max-w-none text-xs mt-1 prose-p:my-1 prose-code:px-1 prose-code:bg-muted prose-code:before:content-none prose-code:after:content-none prose-a:text-blue-500 dark:prose-a:text-blue-400"
+						className="prose dark:prose-invert max-w-none text-base mt-1 prose-p:my-1 prose-code:px-1 prose-code:bg-muted prose-code:before:content-none prose-code:after:content-none prose-a:text-blue-500 dark:prose-a:text-blue-400"
 						dangerouslySetInnerHTML={{ __html: decodeHtml(data.body_html) }}
 					/>
 				)}
@@ -131,9 +145,17 @@ export function Comment({
 					<div className="mt-2 flex flex-col gap-2">
 						{data.replies.data.children.map((reply) =>
 							reply.kind === "t1" ? (
-								<Comment key={reply.data.id} comment={reply} baseRedditUrl={baseRedditUrl} />
+								<Comment
+									key={reply.data.id}
+									comment={reply}
+									baseRedditUrl={baseRedditUrl}
+								/>
 							) : (
-								<MoreComments key={reply.data.id} comment={reply} baseRedditUrl={baseRedditUrl} />
+								<MoreComments
+									key={reply.data.id}
+									comment={reply}
+									baseRedditUrl={baseRedditUrl}
+								/>
 							),
 						)}
 					</div>
@@ -188,11 +210,7 @@ function MoreComments({
 	};
 
 	if (error) {
-		return (
-			<div className="text-red-500 text-xs mt-1">
-				error: {error}
-			</div>
-		);
+		return <div className="text-red-500 text-xs mt-1">error: {error}</div>;
 	}
 
 	return (
@@ -202,9 +220,17 @@ function MoreComments({
 					.filter((reply) => comment.data.children.includes(reply.data.id))
 					.map((c) =>
 						c.kind === "t1" ? (
-							<Comment key={c.data.id} comment={c} baseRedditUrl={baseRedditUrl} />
+							<Comment
+								key={c.data.id}
+								comment={c}
+								baseRedditUrl={baseRedditUrl}
+							/>
 						) : (
-							<MoreComments key={c.data.id} comment={c} baseRedditUrl={baseRedditUrl} />
+							<MoreComments
+								key={c.data.id}
+								comment={c}
+								baseRedditUrl={baseRedditUrl}
+							/>
 						),
 					)
 			) : (

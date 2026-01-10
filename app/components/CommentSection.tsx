@@ -137,7 +137,7 @@ export function Comment({
 				</div>
 				{data.body_html && isExpanded && (
 					<div
-						className="prose dark:prose-invert max-w-none text-base mt-1 prose-p:my-1 prose-code:px-1 prose-code:bg-muted prose-code:before:content-none prose-code:after:content-none prose-a:text-blue-500 dark:prose-a:text-blue-400"
+						className="prose dark:prose-invert max-w-none text-base mt-1 prose-p:my-1 prose-code:px-1 leading-snug prose-code:bg-muted prose-code:before:content-none prose-code:after:content-none prose-a:text-blue-500 dark:prose-a:text-blue-400 font-light"
 						dangerouslySetInnerHTML={{ __html: decodeHtml(data.body_html) }}
 					/>
 				)}

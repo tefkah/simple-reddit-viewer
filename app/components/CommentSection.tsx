@@ -13,7 +13,7 @@ export function CommentListing({
 	baseRedditUrl: string;
 }) {
 	return (
-		<div className="border border-t-0 border-border bg-card flex flex-col gap-3 p-3">
+		<div className="border-t-0 border-border  bg-card flex flex-col py-6 gap-3 p-3">
 			{data.data.children.map((comment) => (
 				<Comment
 					key={comment.data.id}
@@ -74,34 +74,21 @@ export function Comment({
 
 	return (
 		<div className={cn("flex gap-2", data.is_submitter && "highlight-op")}>
-			<div className="flex items-center gap-2 flex-col">
-				{data.profile_img ? (
-					<img
-						src={data.profile_img}
-						alt={data.author}
-						className="size-4 ring-1 ring-border"
-						loading="lazy"
-					/>
-				) : (
-					<div className="size-4 bg-muted-foreground" />
-				)}
-				<button
-					className={cn(
-						"w-px min-w-px h-full block relative",
-						isExpanded && "bg-border",
-					)}
-					onClick={() => setIsExpanded(!isExpanded)}
-					type="button"
-				>
-					{isExpanded ? null : (
-						<span className="absolute -left-1 top-0 text-xs text-muted-foreground">
-							+
-						</span>
-					)}
-				</button>
-			</div>
-			<div className="w-full min-w-0">
-				<div className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
+			<div className="w-full flex flex-col gap-2 relative min-w-0">
+				<div className="absolute left-2 top-8 w-px bottom-2 bg-border" />
+				<div className="text-lg text-muted-foreground flex leading-5 items-center gap-2 flex-wrap font-pixel">
+					<button type="button" onClick={() => setIsExpanded(!isExpanded)}>
+						{data.profile_img ? (
+							<img
+								src={data.profile_img}
+								alt={data.author}
+								className="size-5 ring-1 ring-border"
+								loading="lazy"
+							/>
+						) : (
+							<div className="size-5 bg-muted-foreground" />
+						)}
+					</button>
 					<span
 						className={cn(
 							"font-medium",
@@ -114,7 +101,7 @@ export function Comment({
 						{data.is_submitter && " (OP)"}
 					</span>
 					{data.author_flair_text && (
-						<span className="px-1 bg-muted ">{data.author_flair_text}</span>
+						<span className="px-1 bg-muted">{data.author_flair_text}</span>
 					)}
 					<span>/</span>
 					<span>{data.score}pts</span>
@@ -137,12 +124,12 @@ export function Comment({
 				</div>
 				{data.body_html && isExpanded && (
 					<div
-						className="prose dark:prose-invert max-w-none text-base mt-1 prose-p:my-1 prose-code:px-1 leading-snug prose-code:bg-muted prose-code:before:content-none prose-code:after:content-none prose-a:text-blue-500 dark:prose-a:text-blue-400 font-light"
+						className="prose-sm dark:prose-invert max-w-none pl-4 ml-3  text-xs prose-p:my-1 prose-code:px-1 prose-code:bg-muted prose-code:before:content-none prose-code:after:content-none prose-a:text-blue-500 dark:prose-a:text-blue-400 hyphens-auto"
 						dangerouslySetInnerHTML={{ __html: decodeHtml(data.body_html) }}
 					/>
 				)}
 				{data.replies && typeof data.replies !== "string" && isExpanded && (
-					<div className="mt-2 flex flex-col gap-2">
+					<div className="flex flex-col ml-6 mt-2 gap-2">
 						{data.replies.data.children.map((reply) =>
 							reply.kind === "t1" ? (
 								<Comment

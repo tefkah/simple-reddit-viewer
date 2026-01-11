@@ -123,7 +123,7 @@ export default function RedditPage({ loaderData }: Route.ComponentProps) {
 	}
 
 	return (
-		<div className="max-w-3xl mx-auto font-mono">
+		<div className="max-w-3xl mx-auto min-h-screen font-mono">
 			<PostListingComponent data={postListing} />
 			<CommentSection data={commentListing} baseRedditUrl={baseRedditUrl} />
 		</div>
